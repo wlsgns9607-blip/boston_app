@@ -9,6 +9,421 @@
 <!-- Chart.js 최신 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="/static/style.css">
+<style>
+:root{
+  --bg: #090e11;
+  --bg-sub: #111a1f;
+  --panel: #14232a;
+  --panel-card: rgba(20, 35, 42, 0.85);
+  --ink: #f0f6f8;
+  --muted: #8b9ea5;
+  --line: #223740;
+  --line-hover: #32505d;
+  --accent: #2dd4bf;
+  --accent-glow: rgba(45, 212, 191, 0.25);
+  --accent-ink: #042521;
+  --hi: #f59e0b;
+  --hi-glow: rgba(245, 158, 11, 0.25);
+  --rose: #f43f5e;
+  --blue: #38bdf8;
+  --indigo: #818cf8;
+  --font: "Pretendard", "IBM Plex Sans KR", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background: radial-gradient(circle at 10% 10%, #112028 0%, var(--bg) 90%);
+  color:var(--ink);
+  font:400 15px/1.6 var(--font);
+  min-height: 100vh;
+}
+
+.top{
+  max-width:1200px;
+  margin:0 auto;
+  padding:40px 24px 16px;
+}
+.top-badge{
+  display:inline-block;
+  padding:4px 10px;
+  background:rgba(45, 212, 191, 0.12);
+  border:1px solid rgba(45, 212, 191, 0.35);
+  border-radius:20px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1px;
+  color:var(--accent);
+  margin-bottom:12px;
+}
+.top h1{
+  margin:0;
+  font-size:clamp(26px, 4.5vw, 38px);
+  line-height:1.2;
+  font-weight:800;
+  letter-spacing:-.02em;
+  background:linear-gradient(135deg, #ffffff 40%, #99f6e4 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.top p{
+  margin:10px 0 0;
+  color:var(--muted);
+  max-width:70ch;
+  font-size:15px;
+}
+
+.layout{
+  max-width:1200px;
+  margin:0 auto;
+  padding:20px 24px 60px;
+  display:grid;
+  grid-template-columns:1fr 460px;
+  gap:28px;
+  align-items:start;
+}
+
+.section-title{
+  margin-bottom:16px;
+}
+.section-title h2{
+  font-size:18px;
+  font-weight:700;
+  margin:0 0 4px;
+  color:#fff;
+}
+.section-title .subtext{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.inputs section{
+  background:var(--panel-card);
+  backdrop-filter:blur(12px);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:20px 22px;
+  margin-bottom:20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  transition:border-color .2s;
+}
+.inputs section:hover{
+  border-color:var(--line-hover);
+}
+
+.sec-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--line);
+}
+.sec-header h3{
+  margin:0;
+  font-size:15px;
+  font-weight:700;
+  color:#e2e8f0;
+}
+.badge{
+  font-size:11px;
+  font-weight:600;
+  padding:2px 8px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--line);
+  border-radius:6px;
+  color:var(--muted);
+}
+
+.field{margin-bottom:16px}
+.field:last-child{margin-bottom:0}
+.field .row{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  margin-bottom:6px;
+}
+.field label{
+  font-size:13.5px;
+  font-weight:500;
+  color:#cbd5e1;
+}
+.field input[type=number]{
+  width:90px;
+  padding:5px 8px;
+  border:1px solid var(--line);
+  border-radius:6px;
+  background:rgba(9, 14, 17, 0.7);
+  color:var(--accent);
+  font:600 14px var(--font);
+  text-align:right;
+  outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+.field input[type=number]:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px var(--accent-glow);
+}
+.field input[type=range]{
+  width:100%;
+  accent-color:var(--accent);
+  margin:2px 0 0;
+  cursor:pointer;
+}
+
+.check{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:14px;
+  padding:10px 12px;
+  background:rgba(45, 212, 191, 0.05);
+  border:1px solid rgba(45, 212, 191, 0.2);
+  border-radius:8px;
+  font-size:13.5px;
+  cursor:pointer;
+  transition:all .2s;
+}
+.check:hover{
+  background:rgba(45, 212, 191, 0.1);
+  border-color:var(--accent);
+}
+.check input[type=checkbox]{
+  width:18px;
+  height:18px;
+  accent-color:var(--accent);
+  cursor:pointer;
+}
+.check-text{
+  font-weight:500;
+  color:#e2e8f0;
+}
+
+/* 우측 결과 및 대시보드 */
+.result{
+  display:grid;
+  gap:18px;
+}
+
+.card{
+  background:var(--panel-card);
+  backdrop-filter:blur(12px);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+}
+
+.price-card{
+  border:2px solid var(--accent);
+  background: linear-gradient(145deg, rgba(20, 35, 42, 0.95), rgba(15, 60, 55, 0.4));
+  box-shadow: 0 8px 30px rgba(45, 212, 191, 0.15);
+  position:relative;
+  overflow:hidden;
+}
+.price-card::after{
+  content:"";
+  position:absolute;
+  top:-50px;
+  right:-50px;
+  width:130px;
+  height:130px;
+  background:radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  pointer-events:none;
+}
+.price-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.pulse-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 10px var(--accent);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:0.4;transform:scale(0.8)}
+}
+.price-val-wrap{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  margin:4px 0 8px;
+}
+.price{
+  font-size:52px;
+  font-weight:800;
+  line-height:1.1;
+  letter-spacing:-.03em;
+  color:#ffffff;
+  margin:0;
+  font-variant-numeric:tabular-nums;
+}
+.price.pop{animation:pop .35s ease-out}
+@keyframes pop{from{transform:scale(.95);opacity:.6}to{transform:none;opacity:1}}
+.unit-badge{
+  font-size:12px;
+  font-weight:600;
+  color:var(--muted);
+}
+.diff-tag{
+  display:inline-block;
+  padding:5px 12px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:600;
+  background:rgba(255,255,255,0.06);
+  color:#94a3b8;
+  margin-bottom:12px;
+}
+.diff-tag.up{
+  background:rgba(45, 212, 191, 0.15);
+  color:var(--accent);
+  border:1px solid rgba(45, 212, 191, 0.3);
+}
+.diff-tag.down{
+  background:rgba(244, 63, 94, 0.15);
+  color:var(--rose);
+  border:1px solid rgba(244, 63, 94, 0.3);
+}
+
+.btn-group{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:6px;
+}
+button{
+  width:100%;
+  padding:12px 14px;
+  border:0;
+  border-radius:10px;
+  font:700 14px var(--font);
+  cursor:pointer;
+  transition:all .2s ease;
+}
+.btn-primary{
+  background:var(--accent);
+  color:var(--accent-ink);
+  box-shadow:0 4px 15px var(--accent-glow);
+}
+.btn-primary:hover{
+  filter:brightness(1.1);
+  transform:translateY(-1px);
+}
+button.ghost{
+  background:rgba(255,255,255,0.05);
+  color:#e2e8f0;
+  border:1px solid var(--line);
+  font-weight:500;
+}
+button.ghost:hover{
+  background:rgba(255,255,255,0.1);
+}
+
+/* 통계 3대 요약 카드 */
+.stats-summary-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:10px;
+}
+.stat-pill{
+  background:var(--panel-card);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:12px 10px;
+  display:flex;
+  flex-direction:column;
+  text-align:center;
+}
+.stat-pill .lbl{
+  font-size:11px;
+  color:var(--muted);
+  font-weight:600;
+}
+.stat-pill .val{
+  font-size:17px;
+  font-weight:700;
+  color:#fff;
+  margin:4px 0 2px;
+}
+.stat-pill .desc{
+  font-size:10px;
+  color:var(--muted);
+}
+
+/* 차트 카드 */
+.chart-card{
+  padding:18px 20px;
+}
+.chart-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+  padding-bottom:8px;
+  border-bottom:1px solid var(--line);
+}
+.chart-header h3{
+  margin:0;
+  font-size:15px;
+  font-weight:700;
+  color:#f1f5f9;
+}
+.chart-sub{
+  font-size:11px;
+  color:var(--accent);
+  font-weight:600;
+  padding:2px 6px;
+  border-radius:4px;
+  background:rgba(45, 212, 191, 0.1);
+}
+.chart-container{
+  position:relative;
+  width:100%;
+  height:190px;
+}
+.chart-caption{
+  margin:10px 0 0;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.4;
+}
+
+/* 최근 기록 */
+.history{
+  list-style:none;
+  margin:0;
+  padding:0;
+  font-size:13.5px;
+}
+.history li{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 0;
+  border-bottom:1px solid var(--line);
+}
+.history li:last-child{border:0}
+.history strong{color:var(--accent);font-weight:700}
+
+.muted{color:var(--muted);margin:0}.small{font-size:12px}
+
+@media (max-width:980px){
+  .layout{grid-template-columns:1fr;padding:16px;}
+  .stats-summary-grid{grid-template-columns:1fr 1fr 1fr;}
+}
+@media (max-width:560px){
+  .stats-summary-grid{grid-template-columns:1fr;}
+  .btn-group{grid-template-columns:1fr;}
+}
+
+</style>
 </head>
 <body>
 <header class="top">
@@ -151,5 +566,347 @@
   </aside>
 </main>
 <script src="/static/app.js"></script>
+<script>
+const $ = (s) => document.querySelector(s);
+const fmt = (k) => "$" + Math.round(k * 1000).toLocaleString("en-US");
+
+let info, inputs = {};
+let statsData = null;
+let currentPredictedPrice = 22.5;
+
+// Chart.js 인스턴스 전역 변수
+let comparisonChart = null;
+let roomsChart = null;
+let distChart = null;
+
+async function init() {
+  info = await (await fetch("/api/model")).json();
+  document.querySelectorAll(".field").forEach(buildField);
+  setDefaults();
+
+  const m = info.metrics;
+  $("#stat-r2").textContent = `R² ${m.r2}`;
+  $("#metrics").textContent = `머신러닝 성능: 검증 데이터 ${m.n_test}건 기준 결정계수 R² ${m.r2}, 평균제곱근오차(RMSE) 약 ±$${Math.round(m.rmse * 1000).toLocaleString("en-US")}`;
+
+  await loadStats();
+  await predict(); // 최초 로드시 기본 예측 수행 및 차트 렌더링
+  loadHistory();
+}
+
+function buildField(el) {
+  const k = el.dataset.key, r = info.ranges[k], step = el.dataset.step;
+  el.innerHTML = `
+    <div class="row">
+      <label for="n-${k}">${el.dataset.label}</label>
+      <input type="number" id="n-${k}" min="${r.min}" max="${r.max}" step="${step}">
+    </div>
+    <input type="range" id="r-${k}" min="${r.min}" max="${r.max}" step="${step}" aria-label="${el.dataset.label}">
+  `;
+  const n = $(`#n-${k}`), s = $(`#r-${k}`);
+  n.addEventListener("input", () => { 
+    s.value = n.value; 
+    onFieldChange();
+  });
+  s.addEventListener("input", () => { 
+    n.value = s.value; 
+    onFieldChange();
+  });
+  inputs[k] = n;
+}
+
+// 입력값 변경 시 실시간 반영 (디바운스)
+let debounceTimer = null;
+function onFieldChange() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    predict(false); // 부드러운 예측 업데이트 (히스토리 저장 없이)
+  }, 120);
+}
+
+function setDefaults() {
+  for (const k in inputs) {
+    const v = info.ranges[k].median;
+    inputs[k].value = v; 
+    $(`#r-${k}`).value = v;
+  }
+  $("#chas").checked = false;
+  predict(false);
+}
+
+async function predict(saveHistory = true) {
+  const body = { chas: $("#chas").checked ? 1 : 0 };
+  for (const k in inputs) body[k] = parseFloat(inputs[k].value);
+
+  try {
+    const res = await fetch("/api/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) { return; }
+
+    currentPredictedPrice = data.price;
+    const p = $("#price");
+    p.textContent = fmt(data.price);
+    if (saveHistory) {
+      p.classList.remove("pop"); 
+      void p.offsetWidth; 
+      p.classList.add("pop");
+      loadHistory();
+    }
+
+    // 보스턴 평균 대비 분석 태그 업데이트
+    if (statsData) {
+      const diff = currentPredictedPrice - statsData.avg;
+      const pct = ((diff / statsData.avg) * 100).toFixed(1);
+      const tag = $("#diff-badge");
+      if (diff > 0.05) {
+        tag.className = "diff-tag up";
+        tag.textContent = `보스턴 전체 평균($${Math.round(statsData.avg*1000).toLocaleString()}) 대비 +${fmt(diff)} (+${pct}%) 높음 ▲`;
+      } else if (diff < -0.05) {
+        tag.className = "diff-tag down";
+        tag.textContent = `보스턴 전체 평균($${Math.round(statsData.avg*1000).toLocaleString()}) 대비 -${fmt(Math.abs(diff))} (${pct}%) 낮음 ▼`;
+      } else {
+        tag.className = "diff-tag";
+        tag.textContent = `보스턴 전체 평균 수준과 동일한 가격대`;
+      }
+    }
+
+    // 차트 실시간 갱신
+    updateCharts(Math.round(body.rm));
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+async function loadStats() {
+  statsData = await (await fetch("/api/stats")).json();
+
+  $("#stat-avg").textContent = fmt(statsData.avg);
+  if (statsData.by_chas && statsData.by_chas.length > 1) {
+    const chasAvg = statsData.by_chas.find(c => c.chas === 1)?.avg_price || 28.4;
+    $("#stat-chas").textContent = fmt(chasAvg);
+  }
+
+  initComparisonChart();
+  initRoomsChart();
+  initDistChart();
+}
+
+// 1. 보스턴 평균 vs 내 예측값 비교 가로 막대 차트
+function initComparisonChart() {
+  const ctx = document.getElementById("comparisonChart");
+  if (!ctx) return;
+
+  const normalAvg = statsData.by_chas?.find(c => c.chas === 0)?.avg_price || 22.1;
+  const riverAvg = statsData.by_chas?.find(c => c.chas === 1)?.avg_price || 28.4;
+
+  comparisonChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["보스턴 전체 평균", "일반 지역 평균", "찰스강변 평균", "내 예측 집값 ✨"],
+      datasets: [{
+        label: "집값 (단위: $1,000)",
+        data: [statsData.avg, normalAvg, riverAvg, currentPredictedPrice],
+        backgroundColor: [
+          "rgba(148, 163, 184, 0.45)",  // 전체 평균 (그레이)
+          "rgba(56, 189, 248, 0.55)",   // 일반 지역 (스카이블루)
+          "rgba(245, 158, 11, 0.65)",   // 찰스강변 (앰버/골드)
+          "rgba(45, 212, 191, 0.95)"    // 내 예측값 (민트/아쿠아 하이라이트)
+        ],
+        borderColor: [
+          "#94a3b8",
+          "#38bdf8",
+          "#f59e0b",
+          "#2dd4bf"
+        ],
+        borderWidth: 2,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` 평균가: ${fmt(ctx.raw)} (${ctx.raw}k $)`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: "rgba(255,255,255,0.06)" },
+          ticks: { 
+            color: "#8b9ea5",
+            callback: (v) => "$" + v + "k"
+          }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: "#f0f6f8", font: { weight: "600", family: "Pretendard" } }
+        }
+      }
+    }
+  });
+}
+
+// 2. 방 개수(RM)별 평균 집값 추이 라인 + 바 복합 차트
+function initRoomsChart() {
+  const ctx = document.getElementById("roomsChart");
+  if (!ctx) return;
+
+  const labels = statsData.by_rooms.map(r => `${r.rooms}개`);
+  const avgs = statsData.by_rooms.map(r => r.avg_price);
+
+  roomsChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          type: "line",
+          label: "평균 집값 추세선",
+          data: avgs,
+          borderColor: "#f59e0b",
+          backgroundColor: "#f59e0b",
+          borderWidth: 3,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          tension: 0.35,
+          yAxisID: "y"
+        },
+        {
+          type: "bar",
+          label: "방 개수별 평균가",
+          data: avgs,
+          backgroundColor: statsData.by_rooms.map(r => 
+            Math.round(parseFloat(inputs["rm"]?.value || 6)) === r.rooms 
+              ? "rgba(45, 212, 191, 0.85)" 
+              : "rgba(34, 55, 64, 0.65)"
+          ),
+          borderColor: statsData.by_rooms.map(r => 
+            Math.round(parseFloat(inputs["rm"]?.value || 6)) === r.rooms 
+              ? "#2dd4bf" 
+              : "rgba(255,255,255,0.1)"
+          ),
+          borderWidth: 1.5,
+          borderRadius: 6,
+          yAxisID: "y"
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          labels: { color: "#8b9ea5", boxWidth: 12, font: { size: 11 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.dataset.label}: ${fmt(ctx.raw)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: "#8b9ea5" }
+        },
+        y: {
+          grid: { color: "rgba(255,255,255,0.06)" },
+          ticks: { 
+            color: "#8b9ea5",
+            callback: (v) => "$" + v + "k"
+          }
+        }
+      }
+    }
+  });
+}
+
+// 3. 가격대별 분포 도넛 차트
+function initDistChart() {
+  const ctx = document.getElementById("distChart");
+  if (!ctx || !statsData.distribution) return;
+
+  const labels = statsData.distribution.map(d => d.bucket);
+  const counts = statsData.distribution.map(d => d.cnt);
+
+  distChart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: labels,
+      datasets: [{
+        data: counts,
+        backgroundColor: [
+          "rgba(244, 63, 94, 0.75)",   // 저가
+          "rgba(56, 189, 248, 0.75)",  // 중하위
+          "rgba(45, 212, 191, 0.85)",  // 중상위
+          "rgba(245, 158, 11, 0.85)"   // 고가
+        ],
+        borderColor: "#14232a",
+        borderWidth: 2,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "right",
+          labels: { color: "#cbd5e1", boxWidth: 12, font: { size: 11 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.label}: ${ctx.raw}개 지역 (${((ctx.raw/statsData.count)*100).toFixed(1)}%)`
+          }
+        }
+      },
+      cutout: "62%"
+    }
+  });
+}
+
+// 차트 데이터 실시간 동적 갱신
+function updateCharts(currentRooms) {
+  if (comparisonChart) {
+    comparisonChart.data.datasets[0].data[3] = currentPredictedPrice;
+    comparisonChart.update("none");
+  }
+
+  if (roomsChart && statsData) {
+    roomsChart.data.datasets[1].backgroundColor = statsData.by_rooms.map(r => 
+      r.rooms === currentRooms 
+        ? "rgba(45, 212, 191, 0.9)" 
+        : "rgba(34, 55, 64, 0.65)"
+    );
+    roomsChart.data.datasets[1].borderColor = statsData.by_rooms.map(r => 
+      r.rooms === currentRooms ? "#2dd4bf" : "rgba(255,255,255,0.1)"
+    );
+    roomsChart.update("none");
+  }
+}
+
+async function loadHistory() {
+  const h = await (await fetch("/api/history")).json();
+  if (!h || !h.length) return;
+  $("#history").innerHTML = h.map(x =>
+    `<li><span>방 ${x.rm}개 · 저소득 ${x.lstat}%</span><strong>${fmt(x.price)}</strong></li>`).join("");
+}
+
+$("#go").addEventListener("click", () => predict(true));
+$("#reset").addEventListener("click", setDefaults);
+$("#chas").addEventListener("change", onFieldChange);
+
+init();
+
+</script>
 </body>
 </html>

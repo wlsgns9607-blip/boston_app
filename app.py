@@ -1,20 +1,31 @@
-"""보스턴 집값 예측 웹 서버 (Flask + SQLite + JSON 모델)"""
-import json, sqlite3
+"""보스턴 집값 예측 웹 서버 (Flask + SQLite + JSON 모델) - Vercel Serverless Ready"""
+import json, sqlite3, os
 import numpy as np
 from flask import Flask, jsonify, request, send_from_directory
 
-app = Flask(__name__, static_folder="static", static_url_path="/static")
-MODEL = json.load(open("model.json", encoding="utf-8"))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+MODEL_PATH = os.path.join(BASE_DIR, "model.json")
+DB_PATH = os.path.join(BASE_DIR, "boston.db")
+
+app = Flask(__name__, static_folder=STATIC_DIR, static_url_path="/static")
+
+# 모델 로드 (절대 경로)
+MODEL = json.load(open(MODEL_PATH, encoding="utf-8"))
 FEATURES = MODEL["features"]
 
 def db():
-    con = sqlite3.connect("boston.db")
+    con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     return con
 
 @app.get("/")
 def index():
-    return send_from_directory("static", "index.html")
+    return send_from_directory(STATIC_DIR, "index.html")
+
+@app.get("/static/<path:filename>")
+def serve_static(filename):
+    return send_from_directory(STATIC_DIR, filename)
 
 @app.get("/api/model")
 def model_info():
@@ -30,19 +41,28 @@ def predict():
     z = (x - np.array(MODEL["mean"])) / np.array(MODEL["std"])
     price = float(z @ np.array(MODEL["coef"]) + MODEL["intercept"])
     price = max(price, 0.0)
-    with db() as con:
-        con.execute("INSERT INTO predictions (inputs, predicted) VALUES (?, ?)",
-                    (json.dumps(body, ensure_ascii=False), price))
+    
+    # Vercel 서버리스 환경(Read-only 파일시스템) 고려한 DB 저장
+    try:
+        with db() as con:
+            con.execute("INSERT INTO predictions (inputs, predicted) VALUES (?, ?)",
+                        (json.dumps(body, ensure_ascii=False), price))
+    except Exception:
+        pass  # Vercel 읽기 전용 환경에서도 예측 응답은 정상 반환
+        
     return jsonify(price=round(price, 2))
 
 @app.get("/api/history")
 def history():
-    rows = db().execute(
-        "SELECT id, created_at, predicted, inputs FROM predictions ORDER BY id DESC LIMIT 8").fetchall()
-    return jsonify([{"id": r["id"], "created_at": r["created_at"],
-                     "price": round(r["predicted"], 2),
-                     "rm": json.loads(r["inputs"]).get("rm"),
-                     "lstat": json.loads(r["inputs"]).get("lstat")} for r in rows])
+    try:
+        rows = db().execute(
+            "SELECT id, created_at, predicted, inputs FROM predictions ORDER BY id DESC LIMIT 8").fetchall()
+        return jsonify([{"id": r["id"], "created_at": r["created_at"],
+                         "price": round(r["predicted"], 2),
+                         "rm": json.loads(r["inputs"]).get("rm"),
+                         "lstat": json.loads(r["inputs"]).get("lstat")} for r in rows])
+    except Exception:
+        return jsonify([])
 
 @app.get("/api/stats")
 def stats():
