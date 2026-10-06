@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>보스턴 집값 예측 & 평균 통계 시각화</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Chart.js 최신 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-badge">BOSTON REAL ESTATE DATASET</div>
+  <h1>보스턴 주택 집값 예측 및 평균 데이터 시각화</h1>
+  <p>실제 506개 지역의 통계 데이터 기반 머신러닝 예측 모델과 보스턴 평균 지표를 실시간 인터랙티브 그래프로 비교 분석합니다.</p>
+</header>
+
+<main class="layout">
+  <!-- 왼쪽: 13개 지표 입력 폼 -->
+  <form id="form" class="inputs" autocomplete="off">
+    <div class="section-title">
+      <h2>주택 환경 변수 조정</h2>
+      <span class="subtext">슬라이더를 움직이면 실시간으로 보스턴 평균과 비교됩니다</span>
+    </div>
+
+    <section>
+      <div class="sec-header">
+        <span class="badge">구조</span>
+        <h3>주택 규모 및 내구성</h3>
+      </div>
+      <div class="field" data-key="rm" data-label="평균 방 개수 (RM)" data-step="0.1"></div>
+      <div class="field" data-key="age" data-label="1940년 이전 건축 노후 주택 비율 (%)" data-step="1"></div>
+      <div class="field" data-key="lstat" data-label="저소득층 인구 비율 (%)" data-step="0.1"></div>
+    </section>
+
+    <section>
+      <div class="sec-header">
+        <span class="badge">환경</span>
+        <h3>주변 환경 및 교육 인프라</h3>
+      </div>
+      <div class="field" data-key="crim" data-label="지역 1인당 범죄율 (CRIM)" data-step="0.01"></div>
+      <div class="field" data-key="nox" data-label="일산화질소 공기오염 농도 (NOX)" data-step="0.001"></div>
+      <div class="field" data-key="dis" data-label="5대 주요 고용센터까지 거리 (DIS)" data-step="0.1"></div>
+      <div class="field" data-key="ptratio" data-label="학생 대비 교사 비율 (PTRATIO)" data-step="0.1"></div>
+      <label class="check">
+        <input type="checkbox" id="chas">
+        <span class="check-box"></span>
+        <span class="check-text">찰스강(Charles River) 조망 프리미엄 입지 (+28% 평균가 상승 요인)</span>
+      </label>
+    </section>
+
+    <section>
+      <div class="sec-header">
+        <span class="badge">세무/교통</span>
+        <h3>도시 계획 및 세금 지표</h3>
+      </div>
+      <div class="field" data-key="zn" data-label="대형 주거용지(2.5만 sq.ft 초과) 비율 (%)" data-step="0.5"></div>
+      <div class="field" data-key="indus" data-label="비소매 상업지역 토지 비율 (%)" data-step="0.1"></div>
+      <div class="field" data-key="tax" data-label="1만 달러당 재산세율 (TAX)" data-step="1"></div>
+      <div class="field" data-key="rad" data-label="방사형 고속도로 접근성 지수 (RAD)" data-step="1"></div>
+      <div class="field" data-key="b" data-label="지역 인구 특성 지표 (B)" data-step="0.1"></div>
+    </section>
+  </form>
+
+  <!-- 오른쪽: 예측 결과 및 평균 비교 시각화 대시보드 -->
+  <aside class="result">
+    <!-- 예측 집값 결과 카드 -->
+    <div class="card price-card" aria-live="polite">
+      <div class="price-header">
+        <span class="pulse-dot"></span>
+        <span class="muted">머신러닝 예상 집값 중앙값</span>
+      </div>
+      <div class="price-val-wrap">
+        <p id="price" class="price">–</p>
+        <span class="unit-badge">1970년대 USD</span>
+      </div>
+      <div id="diff-badge" class="diff-tag">보스턴 전체 평균 대비 분석 중...</div>
+      <div class="btn-group">
+        <button id="go" type="button" class="btn-primary">실시간 예측 실행</button>
+        <button id="reset" type="button" class="ghost">보스턴 평균 기본값 리셋</button>
+      </div>
+    </div>
+
+    <!-- 보스턴 평균 핵심 요약 통계 3대 카드 -->
+    <div class="stats-summary-grid">
+      <div class="stat-pill">
+        <span class="lbl">보스턴 전체 평균가</span>
+        <strong id="stat-avg" class="val">$22,500</strong>
+        <span class="desc">전체 506개 지역 표본</span>
+      </div>
+      <div class="stat-pill">
+        <span class="lbl">찰스강변 평균가</span>
+        <strong id="stat-chas" class="val">$28,400</strong>
+        <span class="desc">일반 지역 대비 +28.5%</span>
+      </div>
+      <div class="stat-pill">
+        <span class="lbl">예측 모델 정확도</span>
+        <strong id="stat-r2" class="val">R² 0.74</strong>
+        <span class="desc">평균 오차 약 ±$3,200</span>
+      </div>
+    </div>
+
+    <!-- 시각화 1: 보스턴 평균 vs 내 예측값 실시간 비교 바 차트 -->
+    <div class="card chart-card">
+      <div class="chart-header">
+        <h3>📊 보스턴 평균 vs 내 예측 집값 비교</h3>
+        <span class="chart-sub">실시간 동기화</span>
+      </div>
+      <div class="chart-container">
+        <canvas id="comparisonChart"></canvas>
+      </div>
+      <p class="chart-caption">현재 입력 조건으로 예측된 집값이 보스턴 전체 평균 및 찰스강변 주택 평균과 어떻게 다른지 비교합니다.</p>
+    </div>
+
+    <!-- 시각화 2: 방 개수(RM)별 보스턴 평균 집값 추이 곡선 -->
+    <div class="card chart-card">
+      <div class="chart-header">
+        <h3>📈 방 개수(RM)별 보스턴 평균 집값 추이</h3>
+        <span class="chart-sub">506개 실측 데이터</span>
+      </div>
+      <div class="chart-container">
+        <canvas id="roomsChart"></canvas>
+      </div>
+      <p id="stats-note" class="chart-caption">방 4개부터 9개까지 방 개수가 늘어남에 따른 평균 집값 상승 폭을 나타냅니다.</p>
+    </div>
+
+    <!-- 시각화 3: 보스턴 집값 가격대별 분포도 -->
+    <div class="card chart-card">
+      <div class="chart-header">
+        <h3>🥧 보스턴 506개 지역 가격대별 분포</h3>
+        <span class="chart-sub">구간별 표본수</span>
+      </div>
+      <div class="chart-container" style="height: 220px;">
+        <canvas id="distChart"></canvas>
+      </div>
+      <p class="chart-caption">보스턴 전체 주택의 가격대별 분포 비율입니다.</p>
+    </div>
+
+    <!-- 최근 예측 기록 -->
+    <div class="card">
+      <div class="chart-header">
+        <h3>📋 최근 예측 기록</h3>
+        <span class="chart-sub">최근 8건 히스토리</span>
+      </div>
+      <ul id="history" class="history"><li class="muted">아직 예측 기록이 없습니다.</li></ul>
+    </div>
+
+    <p id="metrics" class="muted small"></p>
+  </aside>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>
